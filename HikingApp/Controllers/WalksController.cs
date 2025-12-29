@@ -7,6 +7,7 @@ using HikingApp.Models.Domain;
 using HikingApp.Models.DTO;
 using HikingApp.Repositories;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HikingApp.Controllers
 {
@@ -24,7 +25,7 @@ namespace HikingApp.Controllers
 
         [HttpPost]
         [ValidateModel]
-
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Create([FromBody] AddWalkRequestDto addWalkRequestDto)
         {
             var walks = mapper.Map<Walk>(addWalkRequestDto);
@@ -72,11 +73,11 @@ namespace HikingApp.Controllers
                 DifficultyName = walk.difficulty.Name,
                 RegionId = walk.RegionId,
                 RegionName = walk.Region.Name,
-                RouteGeometry = walk.RouteGeometry,
-                ElevationGainMeters = walk.ElevationGainMeters,
-                EstimatedDurationMinutes = walk.EstimatedDurationMinutes,
-                IsAccessible = walk.IsAccessible,
-                Features = walk.Features,
+                RouteGeometry = walk.WalkDetails?.RouteGeometry,
+                ElevationGainMeters = walk.WalkDetails?.ElevationGainMeters,
+                EstimatedDurationMinutes = walk.WalkDetails?.EstimatedDurationMinutes,
+                IsAccessible = walk.WalkDetails?.IsAccessible ?? true,
+                Features = walk.WalkDetails?.Features,
                 ImageUrls = walk.Images.Select(i => i.FilePath).ToList(),
                 AverageRating = walk.Ratings.Any() ? Math.Round(walk.Ratings.Average(r => r.Rating), 2) : 0,
                 RatingsCount = walk.Ratings.Count
@@ -88,6 +89,7 @@ namespace HikingApp.Controllers
         [HttpPut]
         [Route("{id:guid}")]
         [ValidateModel]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateWalksDto updateWalksDto)
         {
             var walks = mapper.Map<Walk>(updateWalksDto);
@@ -103,6 +105,7 @@ namespace HikingApp.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var walks = await walkRepository.Delete(id);

@@ -11,9 +11,8 @@ namespace HikingApp.Models.DTO
 
         [Required]
         [DataType(DataType.Password, ErrorMessage = "Invalid Password")]
-
         public string password { get; set; }
-        [Required]
+
         public string[] Roles { get; set; }
     }
 }

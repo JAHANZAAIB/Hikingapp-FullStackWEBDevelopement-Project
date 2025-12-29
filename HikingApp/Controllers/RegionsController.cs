@@ -54,14 +54,11 @@ namespace HikingApp.Controllers
         [HttpPost]
         [ValidateModel]
         [Authorize(Roles = "Writer")]
-
         public async Task<IActionResult> Create([FromBody] AddRequestDto addRequestDto)
         {
             var regions = mapper.Map<Region>(addRequestDto);
 
             regions = await regionRepository.Create(regions);
-
-
 
             var regionsDto =mapper.Map<RegionDTO>(regions);
 
@@ -73,7 +70,6 @@ namespace HikingApp.Controllers
         [Route("{id:guid}")]
         [ValidateModel]
         [Authorize(Roles = "Writer")]
-
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRequestDto updateRequestDto)
         {
             var regions = mapper.Map<Region>(updateRequestDto);
@@ -90,7 +86,6 @@ namespace HikingApp.Controllers
         [HttpDelete]
         [Route("{id:guid}")]
         [Authorize(Roles = "Writer")]
-
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var regions= await regionRepository.Delete(id);

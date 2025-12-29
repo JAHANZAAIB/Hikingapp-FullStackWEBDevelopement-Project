@@ -26,42 +26,52 @@ namespace HikingApp.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
-            // ✅ Step 1: Check if all roles exist
-            foreach (var role in registerRequestDto.Roles)
-            {
-                if (!await roleManager.RoleExistsAsync(role))
+                    // 1. Check if roles exist
+                if (registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
                 {
-                    return BadRequest($"Role '{role}' does not exist");
+                    foreach (var role in registerRequestDto.Roles)
+                    {
+                        var roleExists = await roleManager.RoleExistsAsync(role);
+                        if (!roleExists)
+                        {
+                            return BadRequest($"Validation Error: Role '{role}' does not exist in the system. Please contact admin.");
+                        }
+                    }
                 }
-            }
 
-            // ✅ Step 2: Create user
-            var identityUser = new IdentityUser
-            {
-                UserName = registerRequestDto.username,
-                Email = registerRequestDto.username
-            };
+                // 2. Create User
+                var identityUser = new IdentityUser
+                {
+                    UserName = registerRequestDto.username,
+                    Email = registerRequestDto.username
+                };
 
-            var identityResult = await userManager.CreateAsync(identityUser, registerRequestDto.password);
+                var identityResult = await userManager.CreateAsync(identityUser, registerRequestDto.password);
 
-            if (!identityResult.Succeeded)
-            {
-                return BadRequest(identityResult.Errors); // shows password errors
-            }
+                if (!identityResult.Succeeded)
+                {
+                    // Return specific Identity error messages (Password complexity, Duplicate email, etc.)
+                    return BadRequest(identityResult.Errors);
+                }
 
-            // ✅ Step 3: Assign roles
-            var roleResult = await userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
+                // 3. Assign Roles
+                if (registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
+                {
+                     var roleResult = await userManager.AddToRolesAsync(identityUser, registerRequestDto.Roles);
+                     if (!roleResult.Succeeded)
+                     {
+                         // Rollback user creation if role assignment fails? 
+                         // For now, just return the error. ideally we'd delete the user.
+                         await userManager.DeleteAsync(identityUser);
+                         return BadRequest(roleResult.Errors);
+                     }
+                }
 
-            if (!roleResult.Succeeded)
-            {
-                return BadRequest(roleResult.Errors);
-            }
-
-            return Ok("User Registered! Please Login");
+                return Ok("User Registered! Please Login");
         }
 
         [HttpPost]
-        [Route("Loin")]
+        [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var user = await userManager.FindByEmailAsync(loginRequestDto.username);

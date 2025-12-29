@@ -25,7 +25,14 @@ namespace HikingApp.Repositories
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]));
+            // Add a check to see if the key is null to prevent the 500 crash
+            var keySetting = configuration["JWT:Key"];
+            if (string.IsNullOrEmpty(keySetting))
+            {
+                throw new Exception("JWT Key is missing from configuration!");
+            }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keySetting));
+            //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var Token = new JwtSecurityToken(

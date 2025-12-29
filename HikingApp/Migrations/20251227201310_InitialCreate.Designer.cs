@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HikingApp.Migrations
 {
     [DbContext(typeof(MyAppContext))]
-    [Migration("20251119165143_Cursor")]
-    partial class Cursor
+    [Migration("20251227201310_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -194,6 +194,34 @@ namespace HikingApp.Migrations
                     b.Property<Guid>("DifficultyId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double>("LengthInKM")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RegionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WalkImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DifficultyId");
+
+                    b.HasIndex("RegionId");
+
+                    b.ToTable("Walks");
+                });
+
+            modelBuilder.Entity("HikingApp.Models.Domain.WalkDetails", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int?>("ElevationGainMeters")
                         .HasColumnType("int");
 
@@ -207,29 +235,18 @@ namespace HikingApp.Migrations
                     b.Property<bool>("IsAccessible")
                         .HasColumnType("bit");
 
-                    b.Property<double>("LengthInKM")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("RegionId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("RouteGeometry")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("WalkImageUrl")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("WalkId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DifficultyId");
+                    b.HasIndex("WalkId")
+                        .IsUnique();
 
-                    b.HasIndex("RegionId");
-
-                    b.ToTable("Walks");
+                    b.ToTable("WalkDetails");
                 });
 
             modelBuilder.Entity("HikingApp.Models.Domain.WalkRating", b =>
@@ -265,13 +282,11 @@ namespace HikingApp.Migrations
                 {
                     b.HasOne("HikingApp.Models.Domain.UserRoute", "UserRoute")
                         .WithMany("ActivityTrackings")
-                        .HasForeignKey("UserRouteId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("UserRouteId");
 
                     b.HasOne("HikingApp.Models.Domain.Walk", "Walk")
                         .WithMany("Activities")
-                        .HasForeignKey("WalkId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("WalkId");
 
                     b.Navigation("UserRoute");
 
@@ -294,18 +309,29 @@ namespace HikingApp.Migrations
                     b.HasOne("HikingApp.Models.Domain.Difficulty", "difficulty")
                         .WithMany("Walks")
                         .HasForeignKey("DifficultyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HikingApp.Models.Domain.Region", "Region")
                         .WithMany("Walks")
                         .HasForeignKey("RegionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Region");
 
                     b.Navigation("difficulty");
+                });
+
+            modelBuilder.Entity("HikingApp.Models.Domain.WalkDetails", b =>
+                {
+                    b.HasOne("HikingApp.Models.Domain.Walk", "Walk")
+                        .WithOne("WalkDetails")
+                        .HasForeignKey("HikingApp.Models.Domain.WalkDetails", "WalkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Walk");
                 });
 
             modelBuilder.Entity("HikingApp.Models.Domain.WalkRating", b =>
@@ -341,6 +367,8 @@ namespace HikingApp.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("WalkDetails");
                 });
 #pragma warning restore 612, 618
         }

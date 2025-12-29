@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HikingApp.Migrations
 {
     /// <inheritdoc />
-    public partial class Cursor : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -65,12 +65,7 @@ namespace HikingApp.Migrations
                     LengthInKM = table.Column<double>(type: "float", nullable: false),
                     WalkImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DifficultyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RegionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RouteGeometry = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ElevationGainMeters = table.Column<int>(type: "int", nullable: true),
-                    EstimatedDurationMinutes = table.Column<int>(type: "int", nullable: true),
-                    IsAccessible = table.Column<bool>(type: "bit", nullable: false),
-                    Features = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    RegionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,13 +75,13 @@ namespace HikingApp.Migrations
                         column: x => x.DifficultyId,
                         principalTable: "Difficulties",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Walks_Regions_RegionId",
                         column: x => x.RegionId,
                         principalTable: "Regions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -112,14 +107,12 @@ namespace HikingApp.Migrations
                         name: "FK_ActivityTrackings_UserRoutes_UserRouteId",
                         column: x => x.UserRouteId,
                         principalTable: "UserRoutes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ActivityTrackings_Walks_WalkId",
                         column: x => x.WalkId,
                         principalTable: "Walks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -139,6 +132,29 @@ namespace HikingApp.Migrations
                     table.PrimaryKey("PK_Images", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Images_Walks_WalkId",
+                        column: x => x.WalkId,
+                        principalTable: "Walks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WalkDetails",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WalkId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RouteGeometry = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ElevationGainMeters = table.Column<int>(type: "int", nullable: true),
+                    EstimatedDurationMinutes = table.Column<int>(type: "int", nullable: true),
+                    IsAccessible = table.Column<bool>(type: "bit", nullable: false),
+                    Features = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WalkDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WalkDetails_Walks_WalkId",
                         column: x => x.WalkId,
                         principalTable: "Walks",
                         principalColumn: "Id",
@@ -183,6 +199,12 @@ namespace HikingApp.Migrations
                 column: "WalkId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_WalkDetails_WalkId",
+                table: "WalkDetails",
+                column: "WalkId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WalkRatings_WalkId",
                 table: "WalkRatings",
                 column: "WalkId");
@@ -206,6 +228,9 @@ namespace HikingApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Images");
+
+            migrationBuilder.DropTable(
+                name: "WalkDetails");
 
             migrationBuilder.DropTable(
                 name: "WalkRatings");

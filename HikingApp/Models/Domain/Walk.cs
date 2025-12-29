@@ -17,11 +17,7 @@ namespace HikingApp.Models.Domain
         public Difficulty difficulty { get; set; }
         public Region Region { get; set; }
 
-        public string? RouteGeometry { get; set; }
-        public int? ElevationGainMeters { get; set; }
-        public int? EstimatedDurationMinutes { get; set; }
-        public bool IsAccessible { get; set; } = true;
-        public List<string> Features { get; set; } = new();
+        public WalkDetails? WalkDetails { get; set; }
 
         public List<WalkRating> Ratings { get; set; } = new();
         public List<Image> Images { get; set; } = new();

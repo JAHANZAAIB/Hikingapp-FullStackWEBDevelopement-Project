@@ -41,6 +41,7 @@ namespace HikingApp.Repositories
                 .Include(w => w.Region)
                 .Include(w => w.Images)
                 .Include(w => w.Ratings)
+                .Include(w => w.WalkDetails)
                 .AsQueryable();
 
             if (regionId.HasValue && regionId != Guid.Empty)
@@ -91,12 +92,16 @@ namespace HikingApp.Repositories
                 .Include(w => w.difficulty)
                 .Include(w => w.Images)
                 .Include(w => w.Ratings)
+                .Include(w => w.WalkDetails)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Walk?> Update(Guid id, Walk walk)
         {
-            var walks = await _context.Walks.FirstOrDefaultAsync(x => x.Id == id);
+            var walks = await _context.Walks
+                .Include(w => w.WalkDetails)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            
             if (walks == null)
             {
                 return walks;
@@ -108,11 +113,20 @@ namespace HikingApp.Repositories
             walks.WalkImageUrl= walk.WalkImageUrl;
             walks.RegionId = walk.RegionId;
             walks.DifficultyId = walk.DifficultyId;
-            walks.RouteGeometry = walk.RouteGeometry;
-            walks.ElevationGainMeters = walk.ElevationGainMeters;
-            walks.EstimatedDurationMinutes = walk.EstimatedDurationMinutes;
-            walks.IsAccessible = walk.IsAccessible;
-            walks.Features = walk.Features;
+
+            // Update WalkDetails
+            if (walk.WalkDetails != null)
+            {
+                if (walks.WalkDetails == null)
+                {
+                    walks.WalkDetails = new WalkDetails();
+                }
+                walks.WalkDetails.RouteGeometry = walk.WalkDetails.RouteGeometry;
+                walks.WalkDetails.ElevationGainMeters = walk.WalkDetails.ElevationGainMeters;
+                walks.WalkDetails.EstimatedDurationMinutes = walk.WalkDetails.EstimatedDurationMinutes;
+                walks.WalkDetails.IsAccessible = walk.WalkDetails.IsAccessible;
+                walks.WalkDetails.Features = walk.WalkDetails.Features;
+            }
 
             await _context.SaveChangesAsync();
 
